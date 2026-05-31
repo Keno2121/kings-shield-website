@@ -4,15 +4,18 @@
  */
 const express = require('express');
 const path    = require('path');
+const fs      = require('fs');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1d',
-  etag:   true,
-}));
+// Explicit routes for public/ assets (express.static subdirs unreliable on some hosts)
+const publicDir = path.join(__dirname, 'public');
+fs.readdirSync(publicDir).forEach(file => {
+  app.get('\/' + file, (req, res) => {
+    res.sendFile(path.join(publicDir, file));
+  });
+});
 
 // Serve root files (index.html, style.css, app.js)
 app.use(express.static(__dirname, {
@@ -29,6 +32,8 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`⚔  The King's Shield running on port ${PORT}`);
-  console.log(`   Kaprekar's Constant: 6174 — All paths converge.`);
+  console.log(\`⚔  The King's Shield running on port \${PORT}\`);
+  console.log(\`   Kaprekar's Constant: 6174 — All paths converge.\`);
+  console.log(\`   Public assets: \${fs.readdirSync(publicDir).join(', ')}\`);
 });
+
